@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jesus Chronicles — Protótipo do Motor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+  href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap"
+  rel="stylesheet"
+/>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <header id="hud">
+      <div id="hud-location">—</div>
+      <nav id="hud-actions">
+        <button id="codex-toggle" type="button" class="hud-btn">Códice <span class="hud-key">C</span></button>
+        <button id="missions-toggle" type="button" class="hud-btn">Missões</button>
+        <button id="settings-toggle" type="button" class="hud-btn">Configurações</button>
+      </nav>
+    </header>
+
+    <div id="game-viewport">
+      <canvas id="game-canvas"></canvas>
+
+      <div id="interact-prompt" class="hidden">
+        Pressione <span class="hud-key">E</span> para interagir
+      </div>
+
+      <div id="debug-overlay" class="hidden">0 fps</div>
+
+      <div id="pause-overlay" class="hidden">
+        <div id="pause-panel">
+          <h2>Jogo Pausado</h2>
+          <p>Pressione <span class="hud-key">Esc</span> para continuar.</p>
+        </div>
+      </div>
+    </div>
+
+    <div id="dialogue-box" class="hidden">
+      <div id="dialogue-speaker"></div>
+      <div id="dialogue-text"></div>
+      <div id="dialogue-choices"></div>
+      <div id="dialogue-continue" class="hidden">
+        Pressione <span class="hud-key">Espaço</span> para continuar
+      </div>
+    </div>
+
+    <aside id="codex-panel" class="side-panel hidden">
+      <div class="side-panel-header">
+        <h2>Códice</h2>
+        <button id="codex-close" type="button" class="panel-close-btn">Fechar</button>
+      </div>
+      <div id="codex-panel-body" class="side-panel-body"></div>
+    </aside>
+
+    <aside id="missions-panel" class="side-panel hidden">
+      <div class="side-panel-header">
+        <h2>Missões</h2>
+        <button id="missions-close" type="button" class="panel-close-btn">Fechar</button>
+      </div>
+      <div id="missions-panel-body" class="side-panel-body"></div>
+    </aside>
+
+    <aside id="settings-panel" class="side-panel hidden">
+      <div class="side-panel-header">
+        <h2>Configurações</h2>
+        <button id="settings-close" type="button" class="panel-close-btn">Fechar</button>
+      </div>
+      <div class="side-panel-body">
+        <div class="settings-group">
+          <label class="settings-label" for="vol-master">Volume geral</label>
+          <input id="vol-master" type="range" min="0" max="1" step="0.01" />
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="vol-music">Música</label>
+          <input id="vol-music" type="range" min="0" max="1" step="0.01" />
+        </div>
+        <div class="settings-group">
+          <label class="settings-label" for="vol-sfx">Efeitos</label>
+          <input id="vol-sfx" type="range" min="0" max="1" step="0.01" />
+        </div>
+        <div class="settings-group settings-group--row">
+          <label class="settings-label" for="mute-toggle">Mudo</label>
+          <input id="mute-toggle" type="checkbox" />
+        </div>
+
+        <hr class="settings-divider" />
+
+        <div class="settings-group settings-group--row">
+          <button id="save-button" type="button" class="settings-btn">Salvar Progresso</button>
+          <button id="load-button" type="button" class="settings-btn">Carregar Progresso</button>
+        </div>
+        <p id="settings-status" class="settings-status"></p>
+
+        <p class="settings-note">
+          Áudio: nenhum arquivo de som foi fornecido ainda — os controles acima
+          já funcionam de verdade (volume/mudo são salvos), mas não há nenhum
+          som para tocar neste protótipo.
+        </p>
+      </div>
+    </aside>
+
+    <footer id="controls-hint">
+      WASD / Setas — mover &nbsp;•&nbsp; E — interagir &nbsp;•&nbsp; C — códice
+      &nbsp;•&nbsp; Esc — pausar &nbsp;•&nbsp; ` — debug
+    </footer>
+  </div>
+
+  <script type="module" src="js/Game.js"></script>
+</body>
+</html>

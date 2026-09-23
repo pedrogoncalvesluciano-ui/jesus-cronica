@@ -1,0 +1,589 @@
+/* ==========================================================================
+   JESUS CHRONICLES — PROTÓTIPO DO MOTOR
+   Sistema de design:
+   - Paleta escura, dessaturada, inspirada na dualidade ruína-antiga / tecnologia
+     futura que atravessa toda a Bíblia do Universo.
+   - Tipografia dupla: serifada (Spectral) para texto narrativo/diálogo,
+     geométrica (Space Grotesk) para UI/sistema — ecoando a dualidade
+     espiritual/antiga vs. tecnológica do universo.
+   - Estados do Códice (DESCONHECIDO/DESCOBERTO/SUSPEITA/TEORIA/CONFIRMADO/
+     CONTRADITO) têm cor própria, para que o jogador diferencie fato de
+     teoria só de bater o olho (Codex/Diário Especificação, seção 5).
+   ========================================================================== */
+
+:root {
+  /* Cores base */
+  --void: #0d0f14;
+  --surface: #161a22;
+  --surface-alt: #1e2430;
+  --surface-raised: #212a33;
+  --hairline: #2b3242;
+  --hairline-strong: #333b4a;
+
+  --text: #e8e3d6;
+  --text-muted: #8a8f9c;
+  --text-faint: #5b616e;
+
+  /* Acento primário (ouro envelhecido — canon confirmado, elementos sagrados) */
+  --gold: #c9a24b;
+  --gold-dim: #8f7538;
+
+  /* Acento secundário (teal — tecnologia, descoberta) */
+  --teal: #4c9a94;
+  --teal-dim: #356862;
+
+  /* Estados do códice */
+  --status-desconhecido: #5b616e;
+  --status-descoberto: #4c9a94;
+  --status-suspeita: #c98a3e;
+  --status-teoria: #8c7bb0;
+  --status-confirmado: #c9a24b;
+  --status-contradito: #b4483d;
+
+  /* Tipografia */
+  --font-ui: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-narrative: "Spectral", Georgia, "Times New Roman", serif;
+
+  /* Escala de espaçamento (base 4px) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --radius: 4px;
+  --radius-sm: 3px;
+  --radius-pill: 999px;
+}
+
+/* ==========================================================================
+   RESET MÍNIMO
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ==========================================================================
+   LAYOUT RAIZ
+   ========================================================================== */
+
+#app {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-4);
+  gap: var(--space-3);
+}
+
+/* ==========================================================================
+   HUD (barra superior)
+   ========================================================================== */
+
+#hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+}
+
+#hud-location {
+  font-size: 15px;
+  letter-spacing: 0.01em;
+  color: var(--text);
+}
+
+#hud-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.hud-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-3);
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.hud-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.hud-key {
+  display: inline-block;
+  padding: 0 var(--space-2);
+  line-height: 18px;
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   VIEWPORT DO JOGO (Canvas)
+   ========================================================================== */
+
+#game-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  background: var(--void);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+
+#interact-prompt {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-5);
+  transform: translateX(-50%);
+  background: rgba(22, 26, 34, 0.92);
+  border: 1px solid var(--gold);
+  border-radius: var(--radius);
+  padding: var(--space-2) var(--space-4);
+  font-size: 13px;
+  color: var(--text);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+#debug-overlay {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  background: rgba(13, 15, 20, 0.85);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius-sm);
+  padding: 2px var(--space-2);
+  font-size: 11px;
+  color: var(--teal);
+  pointer-events: none;
+}
+
+#pause-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* O escurecimento em si é desenhado no canvas por Renderer.renderPauseDim,
+     não aqui — este overlay é só o texto/painel flutuando por cima. */
+}
+
+#pause-panel {
+  text-align: center;
+  padding: var(--space-5) var(--space-6);
+  border: 1px solid var(--hairline-strong);
+  border-radius: var(--radius);
+  background: rgba(22, 26, 34, 0.85);
+}
+
+#pause-panel h2 {
+  font-family: var(--font-narrative);
+  font-weight: 600;
+  font-size: 26px;
+  color: var(--gold);
+  margin-bottom: var(--space-2);
+}
+
+#pause-panel p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   CAIXA DE DIÁLOGO
+   ========================================================================== */
+
+#dialogue-box {
+  position: absolute;
+  left: 50%;
+  bottom: var(--space-5);
+  transform: translateX(-50%);
+  width: min(680px, 92%);
+  background: rgba(13, 15, 20, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-top: 2px solid var(--gold);
+  border-radius: var(--radius-sm);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  cursor: pointer;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+}
+
+#dialogue-speaker {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  color: var(--gold);
+  margin-bottom: var(--space-2);
+}
+
+#dialogue-text {
+  font-family: var(--font-narrative);
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--text);
+  max-width: 60ch;
+}
+
+#dialogue-choices {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dialogue-choice-btn {
+  text-align: left;
+  background: var(--surface-alt);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-narrative);
+  font-style: italic;
+  font-size: 16px;
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.dialogue-choice-btn:hover {
+  border-color: var(--teal);
+  background: var(--surface-raised);
+}
+
+.dialogue-choice-btn:active {
+  transform: scale(0.99);
+}
+
+#dialogue-continue {
+  margin-top: var(--space-3);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   PAINÉIS LATERAIS (Códice / Missões / Configurações)
+   Estrutura compartilhada — as três abas usam a mesma classe .side-panel
+   para o encaixe/posição, e diferem só no conteúdo interno.
+   ========================================================================== */
+
+.side-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(380px, 92%);
+  background: var(--surface);
+  border-left: 1px solid var(--hairline);
+  padding: var(--space-5);
+  overflow-y: auto;
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
+}
+
+.side-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.side-panel-header h2 {
+  font-family: var(--font-narrative);
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--gold);
+}
+
+.panel-close-btn {
+  background: transparent;
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  padding: var(--space-1) var(--space-3);
+  cursor: pointer;
+  font-size: 13px;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.panel-close-btn:hover {
+  color: var(--text);
+  border-color: var(--gold);
+}
+
+.panel-category-label {
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: var(--text-faint);
+  margin: var(--space-4) 0 var(--space-1);
+}
+
+.panel-category-label:first-child {
+  margin-top: 0;
+}
+
+.panel-entry {
+  border-bottom: 1px solid var(--hairline);
+  padding: var(--space-3) 0;
+}
+
+.panel-entry:last-child {
+  border-bottom: none;
+}
+
+.panel-entry h3 {
+  font-family: var(--font-narrative);
+  font-weight: 600;
+  font-size: 17px;
+  margin: var(--space-2) 0 var(--space-1);
+  color: var(--text);
+}
+
+.panel-entry p {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.panel-empty {
+  color: var(--text-muted);
+  font-size: 14px;
+  padding: var(--space-3) 0;
+}
+
+/* Rótulo de estado — usado tanto pelo Códice (DESCONHECIDO..CONTRADITO)
+   quanto pelas Missões (status-tag--mission-*), com paletas próprias. */
+.status-tag {
+  display: inline-block;
+  font-family: var(--font-ui);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 1px var(--space-2);
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+}
+
+.status-tag--desconhecido { color: var(--status-desconhecido); }
+.status-tag--descoberto { color: var(--status-descoberto); }
+.status-tag--suspeita { color: var(--status-suspeita); }
+.status-tag--teoria { color: var(--status-teoria); }
+.status-tag--confirmado { color: var(--status-confirmado); }
+.status-tag--contradito { color: var(--status-contradito); }
+
+.status-tag--mission-active { color: var(--teal); }
+.status-tag--mission-completed { color: var(--gold); }
+.status-tag--mission-failed { color: var(--brick, var(--status-contradito)); }
+
+/* -------------------------------------------------------------------------
+   Painel de Configurações
+   ------------------------------------------------------------------------- */
+
+.settings-group {
+  margin-bottom: var(--space-4);
+}
+
+.settings-group--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.settings-label {
+  display: block;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+}
+
+.settings-group--row .settings-label {
+  margin-bottom: 0;
+}
+
+#settings-panel input[type="range"] {
+  width: 100%;
+  accent-color: var(--gold);
+}
+
+#settings-panel input[type="checkbox"] {
+  accent-color: var(--gold);
+  width: 18px;
+  height: 18px;
+}
+
+.settings-divider {
+  border: none;
+  border-top: 1px solid var(--hairline);
+  margin: var(--space-4) 0;
+}
+
+.settings-btn {
+  flex: 1;
+  background: var(--surface-alt);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: var(--space-2) var(--space-3);
+  font-size: 13px;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.settings-btn:hover {
+  border-color: var(--teal);
+  background: var(--surface-raised);
+}
+
+.settings-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.settings-status {
+  min-height: 1.2em;
+  font-size: 12px;
+  color: var(--teal);
+  margin-top: var(--space-2);
+}
+
+.settings-note {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-faint);
+  margin-top: var(--space-5);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--hairline);
+}
+
+/* ==========================================================================
+   RODAPÉ
+   ========================================================================== */
+
+#controls-hint {
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-faint);
+  padding-top: var(--space-1);
+  flex-shrink: 0;
+}
+
+/* ==========================================================================
+   UTILITÁRIOS
+   ========================================================================== */
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   ACESSIBILIDADE
+   ========================================================================== */
+
+button:focus-visible,
+#dialogue-box:focus-visible,
+.dialogue-choice-btn:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVO
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  #app {
+    padding: var(--space-2);
+    gap: var(--space-2);
+  }
+
+  #hud {
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  #hud-location {
+    font-size: 13px;
+  }
+
+  #hud-actions {
+    flex-wrap: wrap;
+  }
+
+  .hud-btn {
+    font-size: 12px;
+    padding: var(--space-1) var(--space-2);
+  }
+
+  #dialogue-text {
+    font-size: 16px;
+  }
+
+  #dialogue-box {
+    padding: var(--space-3) var(--space-4) var(--space-4);
+  }
+
+  .side-panel {
+    width: 100%;
+  }
+}
